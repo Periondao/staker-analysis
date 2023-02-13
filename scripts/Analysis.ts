@@ -39,17 +39,18 @@ async function getHolderInfo(holders, stakingContract) {
       totalDeposited: 0,
       totalShares: 0,
       totalTime: 0,
-      averageTimeOfDeposit: 0,
-      portionOfPool: 0,
+      averageTimeOfDeposit: "",
+      portionOfPool: "",
       numberOfDeposits: deposits.length
     };
     for(const d of deposits) {
       info.totalDeposited += parseInt(d.amount) / 1e18;
       info.totalShares += parseInt(d.shareAmount) / 1e18;
-      info.totalTime += Math.floor((d.end - d.start) / day);
+      info.totalTime += (d.end - d.start) / day;
     }
-    info.averageTimeOfDeposit = Math.floor(info.totalTime / info.numberOfDeposits);
-    info.portionOfPool = ((info.totalShares * 1e18) / supply) * 100;
+    info.averageTimeOfDeposit = info.totalTime / info.numberOfDeposits + " days";
+    info.portionOfPool = `${(((info.totalShares * 1e18) / supply) * 100).toFixed(3)}%`;
+    info.totalTime = `${info.totalTime} days`;
 
     holdersWithTime.push({
       holder: h,
