@@ -17,7 +17,7 @@ async function main() {
 
 async function getInfo(stakingContract) {
   const holders = await getHolders(stakingContract);
-  return getTimePreferences(holders, stakingContract);
+  return getHolderInfo(holders, stakingContract);
 }
 
 async function getHolders(stakingContract) {
@@ -29,8 +29,7 @@ async function getHolders(stakingContract) {
   return [...new Set(receivers)];
 }
 
-async function getTimePreferences(holders, stakingContract) {
-  // TODO refactor conversions
+async function getHolderInfo(holders, stakingContract) {
   const holdersWithTime = [];
   const day = 86400;
   const supply = await stakingContract.totalSupply();
@@ -39,24 +38,22 @@ async function getTimePreferences(holders, stakingContract) {
     const info = {
       totalDeposited: 0,
       totalShares: 0,
-      totalTime: "0",
-      averageTimeOfDeposit: "0",
-      portionOfPool: "0%",
+      totalTime: 0,
+      averageTimeOfDeposit: 0,
+      portionOfPool: 0,
       numberOfDeposits: deposits.length
     };
-    for(let d of deposits) {
+    for(const d of deposits) {
       info.totalDeposited += parseInt(d.amount) / 1e18;
       info.totalShares += parseInt(d.shareAmount) / 1e18;
-      info.totalTime += Math.floor((parseInt(d.end) - parseInt(d.start)) / day);
+      info.totalTime += Math.floor((d.end - d.start) / day);
     }
-    info.totalTime = `${info.totalTime} days`;
-    info.averageTimeOfDeposit = `${Math.floor((parseInt(info.totalTime) / parseInt(info.numberOfDeposits)) / day)} days`;
-    info.portionOfPool = `${(parseInt(String(info.totalDeposited)) / parseInt(supply)) * 100}%`;
+    info.averageTimeOfDeposit = Math.floor(info.totalTime / info.numberOfDeposits);
+    info.portionOfPool = ((info.totalShares * 1e18) / supply) * 100;
 
     holdersWithTime.push({
       holder: h,
-      info: info,
-      deposits: deposits
+      info: JSON.stringify(info),
     })
   }
 
