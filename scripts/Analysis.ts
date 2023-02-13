@@ -1,8 +1,7 @@
 import { ethers } from "hardhat";
 import { Distributor } from "../typechain";
-const PERC = process.env.PERC as string;
-const sPERC = process.env.SPERC as string;
-const sLPPERC = process.env.SLPPERC as string;
+const sPERC = "0xf64F48A4E27bBC299273532B26c83662ef776b7e";
+const sLPPERC = "0xc014286360Ef45aB15A6D3f6Bb1E54a03352aC8f";
 
 async function main() {
   const contract = await ethers.getContractFactory("Distributor") as Distributor;
@@ -41,7 +40,10 @@ async function getHolderInfo(holders, stakingContract) {
       totalTime: 0,
       averageTimeOfDeposit: "",
       portionOfPool: "",
-      numberOfDeposits: deposits.length
+      numberOfDeposits: deposits.length,
+      claimed: 0,
+      totalRewards: 0,
+      unclaimed: 0
     };
     for(const d of deposits) {
       info.totalDeposited += parseInt(d.amount) / 1e18;
@@ -51,11 +53,14 @@ async function getHolderInfo(holders, stakingContract) {
     info.averageTimeOfDeposit = info.totalTime / info.numberOfDeposits + " days";
     info.portionOfPool = `${(((info.totalShares * 1e18) / supply) * 100).toFixed(3)}%`;
     info.totalTime = `${info.totalTime} days`;
+    info.claimed = (await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18;
+    info.totalRewards = (await stakingContract.cumulativeRewardsOf(h).toString() / 1e18);
+    info.unclaimed = (await stakingContract.withdrawableRewardsOf(h)).toString() / 1e18;
 
     holdersWithTime.push({
       holder: h,
       info: JSON.stringify(info),
-    })
+    });
   }
 
   return holdersWithTime;

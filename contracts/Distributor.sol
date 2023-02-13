@@ -16,4 +16,7 @@ contract Distributor {
     function distributeRewards(uint256 _amount) external {}
     function allowance(address owner, address spender) external view returns (uint256) { return 0; }
     function approve(address spender, uint256 amount) external returns (bool) { return true; }
+    function withdrawableRewardsOf(address _account) public view returns (uint256) { return 0; }
+    function withdrawnRewardsOf(address _account) public view returns (uint256) { return 0; }
+    function cumulativeRewardsOf(address _account) public view returns (uint256) { return 0; }
 }
