@@ -10,7 +10,9 @@ async function main() {
 
   return {
     sPERC: sPERCInfo,
-    SLPERC: sLPERCInfo
+    sPERCStakerCount: sPERCInfo.length,
+    SLPERC: sLPERCInfo,
+    sLPERCStakerCount: sLPERCInfo.length,
   };
 }
 
