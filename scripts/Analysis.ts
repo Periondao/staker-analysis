@@ -4,6 +4,8 @@ const { Parser } = require('json2csv');
 const sPERC = "0xf64F48A4E27bBC299273532B26c83662ef776b7e";
 const sLPPERC = "0xc014286360Ef45aB15A6D3f6Bb1E54a03352aC8f";
 const parser = new Parser();
+const fs = require('fs').promises;
+const fsSync = require("fs");
 
 async function main() {
   const contract = await ethers.getContractFactory("Distributor") as Distributor;
@@ -11,11 +13,19 @@ async function main() {
   const sLPERCInfo = await getInfo(contract.attach(sLPPERC));
   const sPERCFile = parser.parse(sPERCInfo);
   const sLPERCFile = parser.parse(sLPERCInfo);
-
+  await handleFiles(sPERCFile, sLPERCFile);
   return {
     sPERC: sPERCFile,
     sLPERC: sLPERCFile
   };
+}
+
+async function handleFiles(sPERCFile, sLPERCFile) {
+  if(!fsSync.existsSync("./sheets")) {
+    fsSync.mkdirSync("./sheets");
+  }
+  await fs.writeFile(`./sheets/sLPERC.csv`, sPERCFile);
+  await fs.writeFile(`./sheets/sPERC.csv`, sLPERCFile);
 }
 
 async function getInfo(stakingContract) {
