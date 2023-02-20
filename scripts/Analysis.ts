@@ -8,7 +8,7 @@ const fs = require('fs').promises;
 const fsSync = require("fs");
 
 async function main() {
-  const contract = await ethers.getContractFactory("Distributor") as Distributor;
+  const contract = await ethers.getContractFactory("Distributor") as unknown as Distributor;
   const sPERCInfo = await getInfo(contract.attach(sPERC));
   const sLPERCInfo = await getInfo(contract.attach(sLPPERC));
   const sPERCFile = parser.parse(sPERCInfo);
@@ -20,7 +20,7 @@ async function main() {
   };
 }
 
-async function handleFiles(sPERCFile, sLPERCFile) {
+async function handleFiles(sPERCFile: any, sLPERCFile: any) {
   if(!fsSync.existsSync("./sheets")) {
     fsSync.mkdirSync("./sheets");
   }
@@ -28,12 +28,12 @@ async function handleFiles(sPERCFile, sLPERCFile) {
   await fs.writeFile(`./sheets/sPERC.csv`, sPERCFile);
 }
 
-async function getInfo(stakingContract) {
+async function getInfo(stakingContract: Distributor) {
   const holders = await getHolders(stakingContract);
   return getHolderInfo(holders, stakingContract);
 }
 
-async function getHolders(stakingContract) {
+async function getHolders(stakingContract: Distributor) {
   const depositFilter = await stakingContract.filters.Deposited();
   const deposits = await stakingContract.queryFilter(depositFilter);
   const receivers = deposits.map((d) => {
@@ -42,7 +42,7 @@ async function getHolders(stakingContract) {
   return [...new Set(receivers)];
 }
 
-async function getHolderInfo(holders, stakingContract) {
+async function getHolderInfo(holders: string[], stakingContract: Distributor) {
   const holdersWithTime = [];
   const day = 86400;
   const supply = await stakingContract.totalSupply();
@@ -63,18 +63,23 @@ async function getHolderInfo(holders, stakingContract) {
       unclaimed: 0
     };
     for(const d of deposits) {
-      info["total deposited"] += parseInt(d.amount) / 1e18;
-      info["total shares"] += parseInt(d.shareAmount) / 1e18;
+      info["total deposited"] += parseInt(d.amount.toString()) / 1e18;
+      info["total shares"] += parseInt(d.shareAmount.toString()) / 1e18;
+      // @ts-ignore
       info["total time"] += (d.end - d.start) / day;
       totalStaked += info["total deposited"];
       allShares += info["total shares"];
     }
     info["average time of deposit"] = info["total time"] / info["number of deposits"] + " days";
+    // @ts-ignore
     info["portion of the pool"] = `${(((info["total shares"] * 1e18) / supply) * 100).toFixed(3)}%`;
     // @ts-ignore
     info["total time"] = `${info["total time"]} days`;
+    // @ts-ignore
     info.claimed = (await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18;
+    // @ts-ignore
     info["total rewards"] = (await stakingContract.cumulativeRewardsOf(h)).toString() / 1e18;
+    // @ts-ignore
     info.unclaimed = (await stakingContract.withdrawableRewardsOf(h)).toString() / 1e18;
 
     holdersWithTime.push(info);
