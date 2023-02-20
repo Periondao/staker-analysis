@@ -74,11 +74,11 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
     }
     info["total deposited"] = Number(info["total deposited"].toFixed(2));
     info["total shares"] = Number(info["total shares"].toFixed(2));
-    info["average time of deposit"] = (info["total time"] / info["number of deposits"]).toFixed(1) + " days";
+    info["average time of deposit"] = (info["total time"] / info["number of deposits"]).toFixed(0) + " days";
     // @ts-ignore
     info["portion of the pool"] = `${(((info["total shares"] * 1e18) / supply) * 100).toFixed(4)}%`;
     // @ts-ignore
-    info["total time"] = `${info["total time"].toFixed(1)} days`;
+    info["total time"] = `${info["total time"].toFixed(0)} days`;
     // @ts-ignore
     info.claimed = parseInt(((await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18).toFixed(2));
     allClaimed += info.claimed;
