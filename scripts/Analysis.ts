@@ -24,8 +24,8 @@ async function handleFiles(sPERCFile, sLPERCFile) {
   if(!fsSync.existsSync("./sheets")) {
     fsSync.mkdirSync("./sheets");
   }
-  await fs.writeFile(`./sheets/sLPERC.csv`, sPERCFile);
-  await fs.writeFile(`./sheets/sPERC.csv`, sLPERCFile);
+  await fs.writeFile(`./sheets/sLPERC.csv`, sLPERCFile);
+  await fs.writeFile(`./sheets/sPERC.csv`, sPERCFile);
 }
 
 async function getInfo(stakingContract) {
@@ -47,39 +47,40 @@ async function getHolderInfo(holders, stakingContract) {
   const day = 86400;
   const supply = await stakingContract.totalSupply();
   let totalStaked = 0;
-  let totalShares = 0;
+  let allShares = 0;
   for(let h of holders) {
     const deposits = await stakingContract.getDepositsOf(h);
     const info = {
-      address: h,
-      totalDeposited: 0,
-      totalShares: 0,
-      totalTime: 0,
-      averageTimeOfDeposit: "",
-      portionOfPool: "",
-      numberOfDeposits: deposits.length,
+      "depositor address": h,
+      "total deposited": 0,
+      "total shares": 0,
+      "total time": 0,
+      "average time of deposit": "",
+      "portion of the pool": "",
+      "number of deposits": deposits.length,
       claimed: 0,
-      totalRewards: 0,
+      "total rewards": 0,
       unclaimed: 0
     };
     for(const d of deposits) {
-      info.totalDeposited += parseInt(d.amount) / 1e18;
-      info.totalShares += parseInt(d.shareAmount) / 1e18;
-      info.totalTime += (d.end - d.start) / day;
-      totalStaked += info.totalDeposited;
-      totalShares += info.totalShares;
+      info["total deposited"] += parseInt(d.amount) / 1e18;
+      info["total deposited"] += parseInt(d.shareAmount) / 1e18;
+      info["total time"] += (d.end - d.start) / day;
+      totalStaked += info["total deposited"];
+      allShares += info["total deposited"];
     }
-    info.averageTimeOfDeposit = info.totalTime / info.numberOfDeposits + " days";
-    info.portionOfPool = `${(((info.totalShares * 1e18) / supply) * 100).toFixed(3)}%`;
-    info.totalTime = `${info.totalTime} days`;
+    info["average time of deposit"] = info["total time"] / info["number of deposits"] + " days";
+    info["portion of the pool"] = `${(((info["total shares"] * 1e18) / supply) * 100).toFixed(3)}%`;
+    // @ts-ignore
+    info["total time"] = `${info["total time"]} days`;
     info.claimed = (await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18;
-    info.totalRewards = (await stakingContract.cumulativeRewardsOf(h).toString() / 1e18);
+    info["total rewards"] = (await stakingContract.cumulativeRewardsOf(h).toString() / 1e18);
     info.unclaimed = (await stakingContract.withdrawableRewardsOf(h)).toString() / 1e18;
 
     holdersWithTime.push(info);
   }
 
-  holdersWithTime.push({ numberOfHolders: holdersWithTime.length, totalStaked: totalStaked, totalShares: totalShares });
+  holdersWithTime.push({ "number of holders": holdersWithTime.length, "total staked": totalStaked, "all shares held": allShares });
 
   return holdersWithTime;
 }
