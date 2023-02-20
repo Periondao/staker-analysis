@@ -92,11 +92,28 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
   }
 
   holdersWithTime.push({
-    "number of holders": holdersWithTime.length,
-    "total staked": totalStaked.toFixed(2),
-    "all shares held": allShares.toFixed(2),
-    "total PERC claimed": allClaimed,
-    "total PERC unclaimed": allUnclaimed
+    "depositor address": "number of holders",
+    "total deposited": holdersWithTime.length
+  });
+
+  holdersWithTime.push({
+    "depositor address": "total staked",
+    "total deposited": totalStaked.toFixed(2)
+  });
+
+  holdersWithTime.push({
+    "depositor address": "all shares held",
+    "total deposited": allShares.toFixed(2)
+  });
+
+  holdersWithTime.push({
+    "depositor address": "total PERC claimed",
+    "total deposited": allClaimed
+  });
+
+  holdersWithTime.push({
+    "depositor address": "total PERC unclaimed",
+    "total deposited": allUnclaimed
   });
 
   return holdersWithTime;
