@@ -64,17 +64,17 @@ async function getHolderInfo(holders, stakingContract) {
     };
     for(const d of deposits) {
       info["total deposited"] += parseInt(d.amount) / 1e18;
-      info["total deposited"] += parseInt(d.shareAmount) / 1e18;
+      info["total shares"] += parseInt(d.shareAmount) / 1e18;
       info["total time"] += (d.end - d.start) / day;
       totalStaked += info["total deposited"];
-      allShares += info["total deposited"];
+      allShares += info["total shares"];
     }
     info["average time of deposit"] = info["total time"] / info["number of deposits"] + " days";
     info["portion of the pool"] = `${(((info["total shares"] * 1e18) / supply) * 100).toFixed(3)}%`;
     // @ts-ignore
     info["total time"] = `${info["total time"]} days`;
     info.claimed = (await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18;
-    info["total rewards"] = (await stakingContract.cumulativeRewardsOf(h).toString() / 1e18);
+    info["total rewards"] = (await stakingContract.cumulativeRewardsOf(h)).toString() / 1e18;
     info.unclaimed = (await stakingContract.withdrawableRewardsOf(h)).toString() / 1e18;
 
     holdersWithTime.push(info);
