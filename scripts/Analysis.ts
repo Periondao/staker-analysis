@@ -80,7 +80,7 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
     // @ts-ignore
     info["total time"] = `${info["total time"].toFixed(1)} days`;
     // @ts-ignore
-    info.claimed = ((await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18).toFixed(2);
+    info.claimed = parseInt(((await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18).toFixed(2));
     allClaimed += info.claimed;
     // @ts-ignore
     info["total rewards"] = (await stakingContract.cumulativeRewardsOf(h)).toString() / 1e18;
