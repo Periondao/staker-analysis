@@ -48,6 +48,8 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
   const supply = await stakingContract.totalSupply();
   let totalStaked = 0;
   let allShares = 0;
+  let allClaimed = 0;
+  let allUnclaimed = 0;
   for(let h of holders) {
     const deposits = await stakingContract.getDepositsOf(h);
     const info = {
@@ -70,22 +72,32 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
       totalStaked += info["total deposited"];
       allShares += info["total shares"];
     }
-    info["average time of deposit"] = info["total time"] / info["number of deposits"] + " days";
+    info["total deposited"] = Number(info["total deposited"].toFixed(2));
+    info["total shares"] = Number(info["total shares"].toFixed(2));
+    info["average time of deposit"] = (info["total time"] / info["number of deposits"]).toFixed(1) + " days";
     // @ts-ignore
-    info["portion of the pool"] = `${(((info["total shares"] * 1e18) / supply) * 100).toFixed(3)}%`;
+    info["portion of the pool"] = `${(((info["total shares"] * 1e18) / supply) * 100).toFixed(4)}%`;
     // @ts-ignore
-    info["total time"] = `${info["total time"]} days`;
+    info["total time"] = `${info["total time"].toFixed(1)} days`;
     // @ts-ignore
-    info.claimed = (await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18;
+    info.claimed = ((await stakingContract.withdrawnRewardsOf(h)).toString() / 1e18).toFixed(2);
+    allClaimed += info.claimed;
     // @ts-ignore
     info["total rewards"] = (await stakingContract.cumulativeRewardsOf(h)).toString() / 1e18;
     // @ts-ignore
     info.unclaimed = (await stakingContract.withdrawableRewardsOf(h)).toString() / 1e18;
+    allUnclaimed += info.unclaimed;
 
     holdersWithTime.push(info);
   }
 
-  holdersWithTime.push({ "number of holders": holdersWithTime.length, "total staked": totalStaked, "all shares held": allShares });
+  holdersWithTime.push({
+    "number of holders": holdersWithTime.length,
+    "total staked": totalStaked.toFixed(2),
+    "all shares held": allShares.toFixed(2),
+    "total PERC claimed": allClaimed,
+    "total PERC unclaimed": allUnclaimed
+  });
 
   return holdersWithTime;
 }
