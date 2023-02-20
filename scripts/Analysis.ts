@@ -92,6 +92,10 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
   }
 
   holdersWithTime.push({
+    "depositor address": ""
+  });
+
+  holdersWithTime.push({
     "depositor address": "number of holders",
     "total deposited": holdersWithTime.length
   });
