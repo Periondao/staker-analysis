@@ -133,7 +133,7 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
 }
 
 main().then((hodlers) => {
-  console.log(hodlers);
+  console.log("Sheets updated");
 }).catch(error => {
   console.error(error);
   process.exitCode = 1;
