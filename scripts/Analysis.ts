@@ -6,6 +6,9 @@ const sLPPERC = "0xc014286360Ef45aB15A6D3f6Bb1E54a03352aC8f";
 const parser = new Parser();
 const fs = require('fs').promises;
 const fsSync = require("fs");
+const whaleThresholdAmount = ethers.utils.parseEther("100000");
+const todayInSeconds = new Date().getSeconds();
+const oneDay = 86400;
 
 async function main() {
   const contract = await ethers.getContractFactory("Distributor") as unknown as Distributor;
@@ -71,6 +74,12 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
       info["total time"] += (d.end - d.start) / day;
       totalStaked += info["total deposited"];
       allShares += info["total shares"];
+      // log whales that have their deposits coming up
+      if(d.amount.gte(whaleThresholdAmount) && todayInSeconds >= d.end.toNumber() - (oneDay * 14)) {
+        console.log("======================\n");
+        console.log(`whale ${h} with ${d.amount.toNumber() / 1e18} PERC deposited will have their deposit expire soon at ${new Date(d.end.toNumber()).toDateString()}`);
+        console.log("======================\n");
+      }
     }
     info["total deposited"] = Number(info["total deposited"].toFixed(2));
     info["total shares"] = Number(info["total shares"].toFixed(2));
