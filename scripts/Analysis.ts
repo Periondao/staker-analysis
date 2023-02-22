@@ -9,9 +9,12 @@ const fsSync = require("fs");
 const whaleThresholdAmount = ethers.utils.parseEther("100000");
 const todayInSeconds = new Date().getSeconds();
 const oneDay = 86400;
+let percPrice = 0;
+const request = require("superagent");
 
 async function main() {
   const contract = await ethers.getContractFactory("Distributor") as unknown as Distributor;
+  await setPercPrice();
   const sPERCInfo = await getInfo(contract.attach(sPERC));
   const sLPERCInfo = await getInfo(contract.attach(sLPPERC));
   const sPERCFile = parser.parse(sPERCInfo);
@@ -21,6 +24,11 @@ async function main() {
     sPERC: sPERCFile,
     sLPERC: sLPERCFile
   };
+}
+
+async function setPercPrice() {
+  const priceResult = await request.get("https://api.coingecko.com/api/v3/simple/token_price/ethereum?contract_addresses=0x60be1e1fe41c1370adaf5d8e66f07cf1c2df2268&vs_currencies=usd");
+  percPrice = JSON.parse(priceResult.text)["0x60be1e1fe41c1370adaf5d8e66f07cf1c2df2268"].usd
 }
 
 async function handleFiles(sPERCFile: any, sLPERCFile: any) {
@@ -65,11 +73,14 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
       "number of deposits": deposits.length,
       claimed: 0,
       "total rewards": 0,
-      unclaimed: 0
+      unclaimed: 0,
+      "USD value of deposit(s)": 0,
+      "percent claimed": 0,
     };
     for(const d of deposits) {
       info["total deposited"] += parseInt(d.amount.toString()) / 1e18;
       info["total shares"] += parseInt(d.shareAmount.toString()) / 1e18;
+      info["USD value of deposit(s)"] += (parseInt(d.amount.toString()) / 1e18) * percPrice;
       // @ts-ignore
       info["total time"] += (d.end - d.start) / day;
       totalStaked += info["total deposited"];
@@ -95,6 +106,8 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
     info["total rewards"] = (await stakingContract.cumulativeRewardsOf(h)).toString() / 1e18;
     // @ts-ignore
     info.unclaimed = (await stakingContract.withdrawableRewardsOf(h)).toString() / 1e18;
+    // @ts-ignore
+    info["percent claimed"] = ((info.claimed / info["total rewards"]) * 100).toFixed(2) + "%";
     allUnclaimed += info.unclaimed;
 
     holdersWithTime.push(info);
