@@ -2,7 +2,7 @@
   "name": "hardhat-project",
   "scripts": {
     "analyse": "npx hardhat run scripts/Analysis.ts --network mainnet",
-    "update": "npm run analyse && git commit -am 'update sheets' && git push origin master"
+    "update": "npm run analyse && git commit -am 'updated sheets' && git push origin master"
   },
   "dependencies": {
     "@nomicfoundation/hardhat-toolbox": "^2.0.1",
