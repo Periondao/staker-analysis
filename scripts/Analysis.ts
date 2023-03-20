@@ -11,18 +11,24 @@ const todayInSeconds = new Date().getSeconds();
 const oneDay = 86400;
 let percPrice = 0;
 const request = require("superagent");
+const uniqueHolders: string[] = [];
 
 async function main() {
   const contract = await ethers.getContractFactory("Distributor") as unknown as Distributor;
   await setPercPrice();
   const sPERCInfo = await getInfo(contract.attach(sPERC));
   const sLPERCInfo = await getInfo(contract.attach(sLPPERC));
+  const info = {
+    "total unique holders": uniqueHolders.length
+  }
   const sPERCFile = parser.parse(sPERCInfo);
   const sLPERCFile = parser.parse(sLPERCInfo);
-  await handleFiles(sPERCFile, sLPERCFile);
+  const infoFile = parser.parse(info);
+  await handleFiles(sPERCFile, sLPERCFile, infoFile);
   return {
     sPERC: sPERCFile,
-    sLPERC: sLPERCFile
+    sLPERC: sLPERCFile,
+    info: infoFile
   };
 }
 
@@ -31,12 +37,13 @@ async function setPercPrice() {
   percPrice = JSON.parse(priceResult.text)["0x60be1e1fe41c1370adaf5d8e66f07cf1c2df2268"].usd
 }
 
-async function handleFiles(sPERCFile: any, sLPERCFile: any) {
+async function handleFiles(sPERCFile: any, sLPERCFile: any, info: any) {
   if(!fsSync.existsSync("./sheets")) {
     fsSync.mkdirSync("./sheets");
   }
   await fs.writeFile(`./sheets/sLPERC.csv`, sLPERCFile);
   await fs.writeFile(`./sheets/sPERC.csv`, sPERCFile);
+  await fs.writeFile(`./sheets/info.csv`, info);
 }
 
 async function getInfo(stakingContract: Distributor) {
@@ -62,6 +69,10 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
   let allClaimed = 0;
   let allUnclaimed = 0;
   for(let h of holders) {
+    if(!uniqueHolders.includes(h)) {
+      uniqueHolders.push(h);
+    }
+    let depositTime = 0;
     const deposits = await stakingContract.getDepositsOf(h);
     const info = {
       "depositor address": h,
@@ -77,6 +88,7 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
       "percent claimed": 0,
     };
     for(const d of deposits) {
+      depositTime += (d.end - d.start) / day;
       info["total deposited"] += parseInt(d.amount.toString()) / 1e18;
       info["total shares"] += parseInt(d.shareAmount.toString()) / 1e18;
       info["USD value of deposit(s)"] += (parseInt(d.amount.toString()) / 1e18) * percPrice;
@@ -91,7 +103,7 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
     }
     info["total deposited"] = Number(info["total deposited"].toFixed(2));
     info["total shares"] = Number(info["total shares"].toFixed(2));
-    info["average time of deposit"] = (info["total time"] / info["number of deposits"]).toFixed(0) + " days";
+    info["average time of deposit"] = (depositTime / info["number of deposits"]).toFixed(0) + " days";
     // @ts-ignore
     info["portion of the pool"] = `${(((info["total shares"] * 1e18) / supply) * 100).toFixed(4)}%`;
     // @ts-ignore
