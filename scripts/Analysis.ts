@@ -67,7 +67,6 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
       "depositor address": h,
       "total deposited": 0,
       "total shares": 0,
-      "total time": 0,
       "average time of deposit": "",
       "portion of the pool": "",
       "number of deposits": deposits.length,
@@ -81,8 +80,6 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
       info["total deposited"] += parseInt(d.amount.toString()) / 1e18;
       info["total shares"] += parseInt(d.shareAmount.toString()) / 1e18;
       info["USD value of deposit(s)"] += (parseInt(d.amount.toString()) / 1e18) * percPrice;
-      // @ts-ignore
-      info["total time"] += (d.end - d.start) / day;
       totalStaked += info["total deposited"];
       allShares += info["total shares"];
       // log whales that have their deposits coming up
@@ -112,35 +109,6 @@ async function getHolderInfo(holders: string[], stakingContract: Distributor) {
 
     holdersWithTime.push(info);
   }
-
-  holdersWithTime.push({
-    "depositor address": ""
-  });
-
-  holdersWithTime.push({
-    "depositor address": "number of holders",
-    "total deposited": holdersWithTime.length
-  });
-
-  holdersWithTime.push({
-    "depositor address": "total staked",
-    "total deposited": totalStaked.toFixed(2)
-  });
-
-  holdersWithTime.push({
-    "depositor address": "all shares held",
-    "total deposited": allShares.toFixed(2)
-  });
-
-  holdersWithTime.push({
-    "depositor address": "total PERC claimed",
-    "total deposited": allClaimed
-  });
-
-  holdersWithTime.push({
-    "depositor address": "total PERC unclaimed",
-    "total deposited": allUnclaimed
-  });
 
   return holdersWithTime;
 }
